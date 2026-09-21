@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: poomsae
+      POSTGRES_USER: poomsae
+      POSTGRES_PASSWORD: poomsae_local_change_me
+    volumes:
+      - poomsae_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U poomsae -d poomsae"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://poomsae:poomsae_local_change_me@db:5432/poomsae
+      NODE_ENV: development
+      SESSION_DAYS: 14
+      PORT: 8080
+    ports:
+      - "8080:8080"
+
+volumes:
+  poomsae_pgdata:
